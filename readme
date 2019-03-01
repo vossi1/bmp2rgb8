@@ -1,0 +1,11 @@
+bmp2rgb8.c
+converts 24bit bmp files to 8bit rgb for V99x8 mode 7
+written by Vossi on 01/2019 in Hamburg/Germany
+version 1.1 copyright (c) 2019 Vossi. All rights reserved.
+
+option -p outputs a bmp file with color reduced to 8bit rgb
+needs top-to-bottom bmp with negative heigh!
+
+rgb format: 1. byte x resolution (1-255. 0=256)
+            2. byte y resolution (1-212)
+            3- data bytes 3bit G + 3 bit R + 2 bit B
