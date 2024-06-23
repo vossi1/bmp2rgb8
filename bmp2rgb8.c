@@ -1,7 +1,7 @@
 // bmp2rgb8.c
 // converts 24bit windows bmp files to 8bit rgb for V99x8 mode 7
 // designed by Vossi on 01/2019 in Hamburg/Germany
-// version 1.3 copyright (c) 2019 Vossi. All rights reserved.
+// version 1.4 copyright (c) 2019-2024 Vossi. All rights reserved.
 
 // option -p (preview) outputs a bmp file with color reduced to 8bit rgb
 // turns bottom to top bmp file (standard)
@@ -9,9 +9,12 @@
 
 // known BUG: works only with even x-size!
 
-// rgb format: 1. byte x resolution (1-255. 0=256)
-//             2. byte y resolution (1-212)
-//             3- data bytes 3bit G + 3 bit R + 2 bit B
+// rgb format: 1. word cbm load address $0400
+//             3. byte x resolution (1-255. 0=256)
+//             4. byte y resolution (1-212)
+//             5- data bytes 3bit G + 3 bit R + 2 bit B
+
+// V1.4 added load address, fixed segmentation fault for preview: close only the opened files!
 
 #include <stdio.h>
 #include <string.h>
@@ -48,9 +51,10 @@ int main(int argc,char *argv[])
   
   if(n==argc)  
   {
-    fprintf(stderr,"bmp2rgb8 v1.3 by Vossi 01/2019\n");
+    fprintf(stderr,"bmp2rgb8 v1.4 by Vossi 06/2024\n");
     fprintf(stderr,"converts 24bit windows bmp files to 8bit rgb for V99x8 mode 7\n");
     fprintf(stderr,"Attention! This version works only with even x-size!\n");
+    fprintf(stderr,"max size: 256 x 212, byte 0+1 = cbm load address $0400, byte 2+3 = dx,dy\n");
     fprintf(stderr,"usage: %s [-p] file[w/o extension]\n",argv[0]);
     fprintf(stderr,"  -p - preview -> writes bmp reduced to 8bit rgb colors;)\n");
     return(1);
@@ -102,6 +106,7 @@ int main(int argc,char *argv[])
                 if(!(fwrite(buf,3,1,f3)))
                   {printf("\n%s: Write error %s\n",argv[0],previewfile); fclose(f); fclose(f3); return(1);}
               }
+              fclose(f3);
             }
             else
             {
@@ -110,6 +115,9 @@ int main(int argc,char *argv[])
               byte databuf[xres*yres*3];
               if(fread(databuf,xres*yres*3,1,f))
               {
+                buf[0]=0x00; buf[1]=0x04;    // cbm loadaddress $0400
+                if(!(fwrite(buf,2,1,f2)))
+                  {printf("\n%s: Write error %s\n",argv[0],target); fclose(f); fclose(f2); return(1);}                        
                 xrgb = xres;
                 if(xrgb == 256) xrgb = 0;       // 0 -> 256
                 buf[0]=(char)xrgb; buf[1]=(char)yres;
@@ -124,6 +132,7 @@ int main(int argc,char *argv[])
                       if(!(fwrite(buf,1,1,f2)))
                         {printf("\n%s: Write error %s\n",argv[0],target); fclose(f); fclose(f2); return(1);}                        
                     }
+                  fclose(f2);
                 }
               }
             }
@@ -145,5 +154,5 @@ int main(int argc,char *argv[])
     }
     else printf("BMP header corrupt!\n");  
   }
-  fclose(f);fclose(f2); return(0);
+  fclose(f); return(0);
 }
