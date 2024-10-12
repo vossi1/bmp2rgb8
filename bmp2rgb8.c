@@ -123,17 +123,15 @@ int main(int argc,char *argv[])
                 buf[0]=(char)xrgb; buf[1]=(char)yres;
                 if(!(fwrite(buf,2,1,f2)))
                   {printf("\n%s: Write error %s\n",argv[0],target); fclose(f); fclose(f2); return(1);}                        
-                {
-                  for(y=yres-1;y>=0;y--)
-                    for(x=0;x<xres;x++)
-                    {
-                      calc=(y*xres*3)+(x*3);
-                      buf[0]=(databuf[calc+1]&0xe0)|((databuf[calc+2]>>3)&0x1c)|(databuf[calc]>>6);
-                      if(!(fwrite(buf,1,1,f2)))
-                        {printf("\n%s: Write error %s\n",argv[0],target); fclose(f); fclose(f2); return(1);}                        
-                    }
-                  fclose(f2);
-                }
+                for(y=yres-1;y>=0;y--)
+                  for(x=0;x<xres;x++)
+                  {
+                    calc=(y*xres*3)+(x*3);
+                    buf[0]=(databuf[calc+1]&0xe0)|((databuf[calc+2]>>3)&0x1c)|(databuf[calc]>>6);
+                    if(!(fwrite(buf,1,1,f2)))
+                      {printf("\n%s: Write error %s\n",argv[0],target); fclose(f); fclose(f2); return(1);}                        
+                  }
+                fclose(f2);
               }
             }
           }
